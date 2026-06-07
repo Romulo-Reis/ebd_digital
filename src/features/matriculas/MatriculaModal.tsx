@@ -41,7 +41,9 @@ export function MatriculaModal({
 
   useEffect(() => {
     if (open) {
-      getAlunos(true).then(setAlunos)
+      getAlunos(true)
+        .then(setAlunos)
+        .catch(() => toast({ title: 'Erro ao carregar alunos', variant: 'destructive' }))
       setSearch('')
       setSelected(null)
     }

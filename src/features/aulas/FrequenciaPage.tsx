@@ -19,11 +19,13 @@ export default function FrequenciaPage() {
 
   useEffect(() => {
     if (!aulaId) return
-    Promise.all([getAula(aulaId), getFrequenciasByAula(aulaId)]).then(([a, r]) => {
-      setAula(a)
-      setRegistros(r)
-      setLoading(false)
-    })
+    Promise.all([getAula(aulaId), getFrequenciasByAula(aulaId)])
+      .then(([a, r]) => {
+        setAula(a)
+        setRegistros(r)
+      })
+      .catch(() => toast({ title: 'Erro ao carregar frequência', variant: 'destructive' }))
+      .finally(() => setLoading(false))
   }, [aulaId])
 
   const saveFrequencia = useCallback(

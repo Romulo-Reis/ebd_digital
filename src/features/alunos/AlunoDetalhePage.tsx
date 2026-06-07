@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { formatDate } from '@/lib/utils'
+import { toast } from '@/hooks/useToast'
 
 export default function AlunoDetalhePage() {
   const { id } = useParams<{ id: string }>()
@@ -17,11 +18,15 @@ export default function AlunoDetalhePage() {
 
   useEffect(() => {
     if (!id) return
-    Promise.all([getAluno(id), getMatriculasByAluno(id)]).then(([a, m]) => {
-      setAluno(a)
-      setMatriculas(m)
-      setLoading(false)
-    })
+    getAluno(id)
+      .then((a) => {
+        setAluno(a)
+        if (a) return getMatriculasByAluno(id)
+        return []
+      })
+      .then((m) => setMatriculas(m as Matricula[]))
+      .catch(() => toast({ title: 'Erro ao carregar dados do aluno', variant: 'destructive' }))
+      .finally(() => setLoading(false))
   }, [id])
 
   if (loading) {

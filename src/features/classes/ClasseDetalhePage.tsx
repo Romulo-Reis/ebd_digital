@@ -33,14 +33,18 @@ export default function ClasseDetalhePage() {
   async function loadData() {
     setLoading(true)
     try {
-      const [c, m, a] = await Promise.all([
-        getClasse(id!),
-        getMatriculasByClasse(id!),
-        getAulasByClasse(id!),
-      ])
+      const c = await getClasse(id!)
       setClasse(c)
-      setMatriculas(m)
-      setAulas(a)
+      if (c) {
+        const [m, a] = await Promise.all([
+          getMatriculasByClasse(id!),
+          getAulasByClasse(id!),
+        ])
+        setMatriculas(m)
+        setAulas(a)
+      }
+    } catch {
+      toast({ title: 'Erro ao carregar dados da classe', variant: 'destructive' })
     } finally {
       setLoading(false)
     }
