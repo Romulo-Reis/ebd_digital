@@ -15,17 +15,22 @@ export function useAuthListener() {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid))
-        if (userDoc.exists()) {
-          setUser({ uid: userDoc.id, ...userDoc.data() } as unknown as AppUser)
+      try {
+        if (firebaseUser) {
+          const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid))
+          if (userDoc.exists()) {
+            setUser({ uid: userDoc.id, ...userDoc.data() } as unknown as AppUser)
+          } else {
+            setUser(null)
+          }
         } else {
           setUser(null)
         }
-      } else {
+      } catch {
         setUser(null)
+      } finally {
+        setLoading(false)
       }
-      setLoading(false)
     })
 
     return unsubscribe
