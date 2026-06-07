@@ -1,7 +1,8 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { ArrowLeft, Check, Loader2, RefreshCw, Pencil } from 'lucide-react'
+import { ArrowLeft, Check, Loader2, RefreshCw, Pencil, UserPlus } from 'lucide-react'
 import { getAula, getFrequenciasByAula, updateFrequencia } from './aulasService'
+import { AdicionarAlunoFrequenciaModal } from './AdicionarAlunoFrequenciaModal'
 import type { Aula, RegistroFrequencia } from '@/types'
 import { Button } from '@/components/ui/button'
 import { cn, formatDate, formatCurrency } from '@/lib/utils'
@@ -19,6 +20,7 @@ export default function FrequenciaPage() {
   const [loading, setLoading] = useState(true)
   const [syncState, setSyncState] = useState<SyncState>('idle')
   const [saveTimer, setSaveTimer] = useState<ReturnType<typeof setTimeout> | null>(null)
+  const [addModalOpen, setAddModalOpen] = useState(false)
 
   useEffect(() => {
     if (!aulaId) return
@@ -30,6 +32,13 @@ export default function FrequenciaPage() {
       .catch(() => toast({ title: 'Erro ao carregar frequência', variant: 'destructive' }))
       .finally(() => setLoading(false))
   }, [aulaId])
+
+  function recarregarRegistros() {
+    if (!aulaId) return
+    getFrequenciasByAula(aulaId)
+      .then(setRegistros)
+      .catch(() => toast({ title: 'Erro ao recarregar lista', variant: 'destructive' }))
+  }
 
   const saveFrequencia = useCallback(
     async (id: string, presente: boolean) => {
@@ -86,14 +95,20 @@ export default function FrequenciaPage() {
             <p className="text-sm text-muted-foreground capitalize">{aula.estadoTempo}</p>
           </div>
         </div>
-        {canEdit && (
-          <Button asChild size="sm" variant="outline">
-            <Link to={`/classes/${classeId}/aulas/${aulaId}/editar`}>
-              <Pencil className="h-4 w-4 mr-1" />
-              Editar aula
-            </Link>
+        <div className="flex items-center gap-2">
+          <Button size="sm" variant="outline" onClick={() => setAddModalOpen(true)}>
+            <UserPlus className="h-4 w-4 mr-1" />
+            Adicionar aluno
           </Button>
-        )}
+          {canEdit && (
+            <Button asChild size="sm" variant="outline">
+              <Link to={`/classes/${classeId}/aulas/${aulaId}/editar`}>
+                <Pencil className="h-4 w-4 mr-1" />
+                Editar aula
+              </Link>
+            </Button>
+          )}
+        </div>
       </div>
 
       <div className="flex items-center justify-between bg-muted rounded-lg px-4 py-3 sticky top-0 z-10">
@@ -179,6 +194,14 @@ export default function FrequenciaPage() {
           </div>
         )}
       </div>
+
+      <AdicionarAlunoFrequenciaModal
+        open={addModalOpen}
+        onOpenChange={setAddModalOpen}
+        aula={aula}
+        registros={registros}
+        onSuccess={recarregarRegistros}
+      />
     </div>
   )
 }

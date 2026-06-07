@@ -2,7 +2,7 @@ import { where, orderBy, Timestamp, writeBatch, collection, doc } from 'firebase
 import { db } from '@/lib/firebase'
 import { fetchCollection, fetchDoc, createDoc, updateDocById } from '@/lib/firestore'
 import { getMatriculasAtivasByClasse } from '@/features/matriculas/matriculasService'
-import type { Aula, RegistroFrequencia } from '@/types'
+import type { Aula, Matricula, RegistroFrequencia } from '@/types'
 import type { AulaFormData } from './aulas.types'
 
 export async function getAulasByClasse(classeId: string): Promise<Aula[]> {
@@ -74,6 +74,31 @@ export async function getFrequenciasByAula(aulaId: string): Promise<RegistroFreq
 
 export async function updateFrequencia(id: string, presente: boolean): Promise<void> {
   return updateDocById('registrosFrequencia', id, { presente })
+}
+
+export async function adicionarAlunosNaFrequencia(
+  aula: Aula,
+  matriculas: Matricula[],
+  createdBy: string
+): Promise<void> {
+  if (matriculas.length === 0) return
+  const batch = writeBatch(db)
+  for (const m of matriculas) {
+    const ref = doc(collection(db, 'registrosFrequencia'))
+    batch.set(ref, {
+      aulaId: aula.id,
+      matriculaId: m.id,
+      alunoId: m.alunoId,
+      alunoNome: m.alunoNome,
+      classeId: aula.classeId,
+      dataAula: aula.data,
+      presente: false,
+      createdAt: Timestamp.now(),
+      updatedAt: Timestamp.now(),
+      createdBy,
+    })
+  }
+  await batch.commit()
 }
 
 export async function getAulasDoMes(classeId: string, inicio: Date, fim: Date): Promise<Aula[]> {
