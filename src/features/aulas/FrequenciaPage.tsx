@@ -1,16 +1,19 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { ArrowLeft, Check, Loader2, RefreshCw } from 'lucide-react'
+import { ArrowLeft, Check, Loader2, RefreshCw, Pencil } from 'lucide-react'
 import { getAula, getFrequenciasByAula, updateFrequencia } from './aulasService'
 import type { Aula, RegistroFrequencia } from '@/types'
 import { Button } from '@/components/ui/button'
 import { cn, formatDate, formatCurrency } from '@/lib/utils'
 import { toast } from '@/hooks/useToast'
+import { useAuthStore } from '@/store/authStore'
 
 type SyncState = 'idle' | 'saving' | 'saved' | 'error'
 
 export default function FrequenciaPage() {
   const { id: classeId, aulaId } = useParams<{ id: string; aulaId: string }>()
+  const { user } = useAuthStore()
+  const canEdit = user?.role === 'admin' || user?.role === 'secretario'
   const [aula, setAula] = useState<Aula | null>(null)
   const [registros, setRegistros] = useState<RegistroFrequencia[]>([])
   const [loading, setLoading] = useState(true)
@@ -71,16 +74,26 @@ export default function FrequenciaPage() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-4">
-      <div className="flex items-center gap-3">
-        <Button asChild variant="ghost" size="icon">
-          <Link to={`/classes/${classeId}`}>
-            <ArrowLeft className="h-5 w-5" />
-          </Link>
-        </Button>
-        <div>
-          <h2 className="font-bold text-lg">{formatDate(aula.data)}</h2>
-          <p className="text-sm text-muted-foreground capitalize">{aula.estadoTempo}</p>
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <Button asChild variant="ghost" size="icon">
+            <Link to={`/classes/${classeId}`}>
+              <ArrowLeft className="h-5 w-5" />
+            </Link>
+          </Button>
+          <div>
+            <h2 className="font-bold text-lg">{formatDate(aula.data)}</h2>
+            <p className="text-sm text-muted-foreground capitalize">{aula.estadoTempo}</p>
+          </div>
         </div>
+        {canEdit && (
+          <Button asChild size="sm" variant="outline">
+            <Link to={`/classes/${classeId}/aulas/${aulaId}/editar`}>
+              <Pencil className="h-4 w-4 mr-1" />
+              Editar aula
+            </Link>
+          </Button>
+        )}
       </div>
 
       <div className="flex items-center justify-between bg-muted rounded-lg px-4 py-3 sticky top-0 z-10">

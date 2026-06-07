@@ -56,11 +56,10 @@ export async function createAula(
 }
 
 export async function updateAula(id: string, data: Partial<AulaFormData>): Promise<void> {
-  const updateData = { ...data } as Record<string, unknown>
-  if (data.data) {
-    updateData.data = Timestamp.fromDate(new Date(data.data + 'T12:00:00'))
-    delete updateData.data
-    updateData.data = Timestamp.fromDate(new Date((data.data as string) + 'T12:00:00'))
+  const { data: dataStr, ...rest } = data
+  const updateData: Record<string, unknown> = { ...rest }
+  if (dataStr) {
+    updateData.data = Timestamp.fromDate(new Date(dataStr + 'T12:00:00'))
   }
   return updateDocById('aulas', id, updateData)
 }

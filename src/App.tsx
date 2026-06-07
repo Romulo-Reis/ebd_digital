@@ -44,6 +44,7 @@ function AppRoutes() {
             <Route path="/classes/:id" element={<ClasseDetalhePage />} />
             <Route path="/classes/:id/editar" element={<ClasseFormPage />} />
             <Route path="/classes/:id/aulas/nova" element={<AulaFormPage />} />
+            <Route path="/classes/:id/aulas/:aulaId/editar" element={<AulaFormPage />} />
             <Route path="/classes/:id/aulas/:aulaId" element={<FrequenciaPage />} />
 
             <Route path="/relatorios/domingo" element={<RelatorioDomingoPage />} />
