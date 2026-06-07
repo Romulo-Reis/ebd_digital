@@ -1,0 +1,63 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "registrosFrequencia",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "classeId", "order": "ASCENDING" },
+        { "fieldPath": "dataAula", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "registrosFrequencia",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "alunoId", "order": "ASCENDING" },
+        { "fieldPath": "dataAula", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "registrosFrequencia",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "classeId", "order": "ASCENDING" },
+        { "fieldPath": "dataAula", "order": "ASCENDING" },
+        { "fieldPath": "alunoNome", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "aulas",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "classeId", "order": "ASCENDING" },
+        { "fieldPath": "data", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "aulas",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "classeId", "order": "ASCENDING" },
+        { "fieldPath": "data", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "matriculas",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "classeId", "order": "ASCENDING" },
+        { "fieldPath": "ativo", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "matriculas",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "classeId", "order": "ASCENDING" },
+        { "fieldPath": "ativo", "order": "ASCENDING" },
+        { "fieldPath": "alunoNome", "order": "ASCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

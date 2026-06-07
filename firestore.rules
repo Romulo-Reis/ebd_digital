@@ -1,0 +1,63 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function getRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && getRole() == 'admin';
+    }
+
+    function isSecretario() {
+      return isAuthenticated() && getRole() in ['admin', 'secretario'];
+    }
+
+    function isProfessor(classeId) {
+      return isAuthenticated() &&
+        get(/databases/$(database)/documents/classes/$(classeId)).data.professorId == request.auth.uid;
+    }
+
+    match /users/{userId} {
+      allow read: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
+      allow write: if isAdmin();
+    }
+
+    match /alunos/{alunoId} {
+      allow read: if isAuthenticated();
+      allow create, update: if isSecretario();
+      allow delete: if isAdmin();
+    }
+
+    match /classes/{classeId} {
+      allow read: if isAuthenticated();
+      allow create, update: if isSecretario();
+      allow delete: if isAdmin();
+    }
+
+    match /matriculas/{matriculaId} {
+      allow read: if isAuthenticated();
+      allow create, update: if isSecretario();
+      allow delete: if isAdmin();
+    }
+
+    match /aulas/{aulaId} {
+      allow read: if isAuthenticated();
+      allow create: if isSecretario() || isProfessor(request.resource.data.classeId);
+      allow update: if isSecretario() || isProfessor(resource.data.classeId);
+      allow delete: if isAdmin();
+    }
+
+    match /registrosFrequencia/{registroId} {
+      allow read: if isAuthenticated();
+      allow create: if isSecretario() || isProfessor(request.resource.data.classeId);
+      allow update: if isSecretario() || isProfessor(resource.data.classeId);
+      allow delete: if isAdmin();
+    }
+  }
+}
