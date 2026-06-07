@@ -34,7 +34,7 @@ src/
 ├── components/
 │   ├── ui/           # Componentes shadcn/ui (não editar manualmente)
 │   ├── layout/       # AppLayout, Sidebar, Header
-│   └── shared/       # ProtectedRoute, DataTable, ConfirmDialog, LoadingSpinner
+│   └── shared/       # ProtectedRoute, ConfirmDialog, LoadingSpinner
 ├── features/
 │   ├── auth/         # LoginPage, RecuperarSenhaPage, useAuth
 │   ├── alunos/       # AlunosPage, AlunoFormPage, AlunoDetalhePage, alunosService, alunos.types
@@ -42,7 +42,8 @@ src/
 │   ├── matriculas/   # MatriculaModal, matriculasService, matriculas.types
 │   ├── aulas/        # AulaFormPage, FrequenciaPage, aulasService, aulas.types
 │   ├── relatorios/   # RelatorioDomingoPage, RelatorioFrequenciaPage, relatoriosService
-│   └── dashboard/    # DashboardPage
+│   ├── dashboard/    # DashboardPage
+│   └── usuarios/     # UsuariosPage (somente leitura; admin only)
 ├── lib/
 │   ├── firebase.ts   # Inicialização do Firebase (lê vars VITE_FIREBASE_*)
 │   ├── firestore.ts  # Helpers genéricos do Firestore
@@ -50,8 +51,9 @@ src/
 ├── store/
 │   └── authStore.ts  # Zustand: estado de autenticação
 ├── hooks/
-│   ├── useFirestoreCollection.ts
-│   └── useFirestoreDoc.ts
+│   └── useToast.ts   # Hook e função toast para notificações
+├── test/
+│   └── setup.ts      # Configuração do Vitest
 └── types/index.ts
 ```
 
@@ -65,10 +67,11 @@ Todo documento deve ter `createdAt`, `updatedAt` e `createdBy` (UID do usuário)
 
 Campos desnormalizados (ex: `alunoNome`, `classeNome`) existem intencionalmente para leitura rápida — não remover.
 
-Índices compostos necessários:
-- `registrosFrequencia`: `classeId ASC + dataAula ASC` e `alunoId ASC + dataAula ASC`
-- `aulas`: `classeId ASC + data ASC`
-- `matriculas`: `classeId ASC + ativo ASC`
+Índices compostos necessários (definidos em `firestore.indexes.json`):
+- `alunos`: `ativo ASC + nome ASC`
+- `registrosFrequencia`: `classeId ASC + dataAula ASC`, `alunoId ASC + dataAula ASC`, `classeId ASC + dataAula ASC + alunoNome ASC`, `aulaId ASC + alunoNome ASC`
+- `aulas`: `classeId ASC + data ASC`, `classeId ASC + data DESC`
+- `matriculas`: `classeId ASC + ativo ASC`, `classeId ASC + ativo ASC + alunoNome ASC`, `classeId ASC + alunoNome ASC`, `alunoId ASC + dataMatricula DESC`
 
 ## Roles e permissões
 
@@ -111,6 +114,28 @@ Referência: `.env.example` na raiz do projeto.
 - Campo `oferta`: número positivo com até 2 casas decimais
 - Todas as rotas privadas passam pelo componente `ProtectedRoute`
 
+## Rotas
+
+```
+/login                               → LoginPage
+/recuperar-senha                     → RecuperarSenhaPage
+/ (dashboard)                        → DashboardPage
+/alunos                              → AlunosPage
+/alunos/novo                         → AlunoFormPage
+/alunos/:id                          → AlunoDetalhePage
+/alunos/:id/editar                   → AlunoFormPage
+/classes                             → ClassesPage
+/classes/nova                        → ClasseFormPage
+/classes/:id                         → ClasseDetalhePage
+/classes/:id/editar                  → ClasseFormPage
+/classes/:id/aulas/nova              → AulaFormPage
+/classes/:id/aulas/:aulaId           → FrequenciaPage (lista de presença)
+/classes/:id/aulas/:aulaId/editar    → AulaFormPage (admin e secretario)
+/relatorios/domingo                  → RelatorioDomingoPage
+/relatorios/frequencia               → RelatorioFrequenciaPage
+/usuarios                            → UsuariosPage (admin only)
+```
+
 ## UX importante
 
 - **Mobile-first**: professores usam o app no celular para marcar presença em sala
@@ -118,11 +143,13 @@ Referência: `.env.example` na raiz do projeto.
 - Lista de presença: toggle por aluno com debounce de 500ms e indicador "Salvando… / Salvo ✓"
 - Relatórios: ocultar sidebar e header no `@media print`; layout fiel ao formulário físico da CPAD
 - Estado vazio em tabelas deve ter mensagem + botão de ação
+- Botão "Editar aula" na FrequenciaPage visível apenas para `admin` e `secretario`; editar aula **não recria nem altera registros de frequência**
 
 ## Fases de desenvolvimento
 
-1. **Fase 1** — Fundação: Vite + Firebase + autenticação + layout com sidebar
-2. **Fase 2** — CRUD base: alunos, classes, matrículas
-3. **Fase 3** — Aulas e frequência: formulário de aula + presença com sync em tempo real
-4. **Fase 4** — Relatórios: Relatório do Domingo, Frequência Trimestral, Dashboard
-5. **Fase 5** — Qualidade e deploy: Security Rules, testes, performance, Firebase Hosting
+1. **Fase 1** — Fundação: Vite + Firebase + autenticação + layout com sidebar ✅
+2. **Fase 2** — CRUD base: alunos, classes, matrículas ✅
+3. **Fase 3** — Aulas e frequência: formulário de aula + presença com sync em tempo real ✅
+   - Pendente: edição de aula (`/classes/:id/aulas/:aulaId/editar`) + botão na FrequenciaPage
+4. **Fase 4** — Relatórios: Relatório do Domingo, Frequência Trimestral, Dashboard ✅ (parcial — gráficos do dashboard pendentes)
+5. **Fase 5** — Qualidade e deploy: Security Rules ✅, testes ⬜, performance ⬜, Firebase Hosting ⬜

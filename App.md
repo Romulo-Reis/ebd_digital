@@ -264,7 +264,7 @@ service cloud.firestore {
 
 ### 5.5 Registro de Aulas e Frequência
 
-**Tela: Nova Aula / Editar Aula**
+**Tela: Nova Aula**
 - Data (padrão: domingo atual)
 - Estado do tempo: Bom | Ameaçador | Chuvoso | Tempestuoso
 - Quantidade de Bíblias, Revistas
@@ -272,6 +272,17 @@ service cloud.firestore {
 - Número de visitantes
 - Observações opcionais
 - Ao salvar, cria registros de frequência (`presente: false`) para todos os alunos com matrícula ativa na classe
+- Após salvar, redireciona automaticamente para a tela de Lista de Presença da aula criada
+
+**Tela: Editar Aula**
+- Acessível via botão "Editar aula" na página de Lista de Presença
+- Visível apenas para `admin` e `secretario` (professores não podem editar os metadados da aula)
+- Pré-carrega todos os dados atuais da aula no formulário
+- Campos editáveis: data, estado do tempo, quantidade de Bíblias, revistas, oferta, visitantes, observações
+- **Não recria nem altera os registros de frequência existentes** — apenas atualiza os metadados da aula no documento `aulas/{aulaId}`
+- Ao salvar, redireciona de volta para a página de Lista de Presença da aula (`/classes/:id/aulas/:aulaId`)
+- Ao cancelar, retorna para a página de Lista de Presença sem salvar alterações
+- Feedback visual de sucesso/erro via toast
 
 **Tela: Lista de Presença (por aula)**
 - Exibe lista de alunos matriculados ativos
@@ -279,6 +290,7 @@ service cloud.firestore {
 - Indicação visual clara: presente (verde) / ausente (vermelho)
 - Salvamento em tempo real (debounce de 500ms com feedback de sincronização)
 - Contador: X presentes / Y total
+- Botão "Editar aula" visível apenas para `admin` e `secretario`, que redireciona para `/classes/:id/aulas/:aulaId/editar`
 
 ### 5.6 Relatórios
 
@@ -321,8 +333,9 @@ service cloud.firestore {
 /classes/nova                   → Formulário nova classe
 /classes/:id                    → Detalhe da classe
 /classes/:id/editar             → Editar classe
-/classes/:id/aulas/nova         → Nova aula
-/classes/:id/aulas/:aulaId      → Frequência da aula
+/classes/:id/aulas/nova              → Nova aula
+/classes/:id/aulas/:aulaId           → Frequência da aula (lista de presença)
+/classes/:id/aulas/:aulaId/editar    → Editar metadados da aula (admin e secretario)
 
 /relatorios/domingo             → Relatório por domingo
 /relatorios/frequencia          → Registro de frequência trimestral
@@ -595,6 +608,7 @@ export const db = getFirestore(app);
 - [ ] Formulário de nova aula
 - [ ] Criação automática de registros de frequência
 - [ ] Tela de lista de presença com toggle e sync em tempo real
+- [ ] Edição de aula: rota `/classes/:id/aulas/:aulaId/editar`, botão na FrequenciaPage restrito a admin/secretario, sem recriar registros de frequência
 
 ### Fase 4 — Relatórios
 - [ ] Relatório por Domingo (tabela + impressão)
