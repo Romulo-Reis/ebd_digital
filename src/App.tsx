@@ -20,6 +20,7 @@ const FrequenciaPage = lazy(() => import('@/features/aulas/FrequenciaPage'))
 const RelatorioDomingoPage = lazy(() => import('@/features/relatorios/RelatorioDomingoPage'))
 const RelatorioFrequenciaPage = lazy(() => import('@/features/relatorios/RelatorioFrequenciaPage'))
 const UsuariosPage = lazy(() => import('@/features/usuarios/UsuariosPage'))
+const UsuarioFormPage = lazy(() => import('@/features/usuarios/UsuarioFormPage'))
 
 function AppRoutes() {
   useAuthListener()
@@ -55,6 +56,22 @@ function AppRoutes() {
               element={
                 <ProtectedRoute allowedRoles={['admin']}>
                   <UsuariosPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/usuarios/novo"
+              element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <UsuarioFormPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/usuarios/:id/editar"
+              element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <UsuarioFormPage />
                 </ProtectedRoute>
               }
             />

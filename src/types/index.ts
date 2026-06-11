@@ -7,8 +7,10 @@ export interface AppUser {
   email: string
   nome: string
   role: UserRole
+  ativo?: boolean
   createdAt: Timestamp
   updatedAt: Timestamp
+  createdBy?: string
 }
 
 export interface Aluno {
