@@ -6,7 +6,9 @@
       "Bash(npm install *)",
       "Bash(del \"c:\\\\Users\\\\romul\\\\Documents\\\\projetos-pessoais\\\\projetos_igreja\\\\projeto_app_escola_dominical\\\\edb_digital\\\\eslint.config.js\")",
       "Bash(npx tsc *)",
-      "Bash(npm run *)"
+      "Bash(npm run *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)"
     ]
   }
 }
