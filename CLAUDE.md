@@ -43,7 +43,7 @@ src/
 │   ├── aulas/        # AulaFormPage, FrequenciaPage, aulasService, aulas.types
 │   ├── relatorios/   # RelatorioDomingoPage, RelatorioFrequenciaPage, relatoriosService
 │   ├── dashboard/    # DashboardPage
-│   └── usuarios/     # UsuariosPage (somente leitura; admin only)
+│   └── usuarios/     # UsuariosPage, UsuarioFormPage, usuariosService, usuarios.types (admin only)
 ├── lib/
 │   ├── firebase.ts   # Inicialização do Firebase (lê vars VITE_FIREBASE_*)
 │   ├── firestore.ts  # Helpers genéricos do Firestore
@@ -113,6 +113,7 @@ Referência: `.env.example` na raiz do projeto.
 - Sanitizar strings antes de salvar (trim, remover HTML)
 - Campo `oferta`: número positivo com até 2 casas decimais
 - Todas as rotas privadas passam pelo componente `ProtectedRoute`
+- **Criação de usuários pelo admin:** usar instância secundária do Firebase App (`initializeApp(config, 'secondary')`) para chamar `createUserWithEmailAndPassword` sem encerrar a sessão do admin; descartar a instância secundária após o registro
 
 ## Rotas
 
@@ -134,6 +135,8 @@ Referência: `.env.example` na raiz do projeto.
 /relatorios/domingo                  → RelatorioDomingoPage
 /relatorios/frequencia               → RelatorioFrequenciaPage
 /usuarios                            → UsuariosPage (admin only)
+/usuarios/novo                       → UsuarioFormPage (admin only)
+/usuarios/:id/editar                 → UsuarioFormPage (admin only)
 ```
 
 ## UX importante
@@ -144,12 +147,15 @@ Referência: `.env.example` na raiz do projeto.
 - Relatórios: ocultar sidebar e header no `@media print`; layout fiel ao formulário físico da CPAD
 - Estado vazio em tabelas deve ter mensagem + botão de ação
 - Botão "Editar aula" na FrequenciaPage visível apenas para `admin` e `secretario`; editar aula **não recria nem altera registros de frequência**
+- Botão "Adicionar aluno" na FrequenciaPage visível para `admin`, `secretario` e `professor`: abre modal que lista apenas alunos com matrícula ativa que ainda **não constam** na lista de presença da aula; ao confirmar, cria `registrosFrequencia` com `presente: false` para os selecionados; **não altera registros existentes**
 
 ## Fases de desenvolvimento
 
 1. **Fase 1** — Fundação: Vite + Firebase + autenticação + layout com sidebar ✅
 2. **Fase 2** — CRUD base: alunos, classes, matrículas ✅
 3. **Fase 3** — Aulas e frequência: formulário de aula + presença com sync em tempo real ✅
-   - Pendente: edição de aula (`/classes/:id/aulas/:aulaId/editar`) + botão na FrequenciaPage
+   - Edição de aula (`/classes/:id/aulas/:aulaId/editar`) + botão na FrequenciaPage ✅
+   - Adicionar aluno retroativo à lista de presença (modal na FrequenciaPage) ✅
 4. **Fase 4** — Relatórios: Relatório do Domingo, Frequência Trimestral, Dashboard ✅ (parcial — gráficos do dashboard pendentes)
 5. **Fase 5** — Qualidade e deploy: Security Rules ✅, testes ⬜, performance ⬜, Firebase Hosting ⬜
+   - Gestão de usuários: lista, cadastro (instância secundária Firebase), edição de nome/role, desativar/ativar ⬜

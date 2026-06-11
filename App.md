@@ -291,6 +291,47 @@ service cloud.firestore {
 - Salvamento em tempo real (debounce de 500ms com feedback de sincronização)
 - Contador: X presentes / Y total
 - Botão "Editar aula" visível apenas para `admin` e `secretario`, que redireciona para `/classes/:id/aulas/:aulaId/editar`
+- Botão "Adicionar aluno" visível para `admin`, `secretario` e `professor`, que abre o modal de adição de aluno retroativo
+
+**Modal: Adicionar Aluno à Lista de Presença**
+
+Resolve o cenário em que um aluno é matriculado após a criação da aula e, por isso, não possui registro de frequência para ela.
+
+- Acessível pelo botão "Adicionar aluno" na tela de Lista de Presença
+- Ao abrir o modal, o sistema:
+  1. Busca todas as matrículas ativas da classe (`getMatriculasAtivasByClasse`)
+  2. Compara com os alunos que já possuem `registroFrequencia` nesta aula
+  3. Exibe apenas os alunos com matrícula ativa que **ainda não constam** na lista de presença
+- Se nenhum aluno estiver faltando, exibe mensagem "Todos os alunos matriculados já estão na lista de presença"
+- O usuário seleciona um ou mais alunos da lista filtrada
+- Ao confirmar, cria os documentos `registrosFrequencia` para cada aluno selecionado com `presente: false`
+- Os alunos adicionados aparecem imediatamente na lista de presença e podem ter a presença togglada normalmente
+- A operação **não altera** os registros de frequência já existentes
+- Feedback visual de sucesso/erro via toast após confirmação
+
+### 5.7 Gestão de Usuários (admin only)
+
+**Tela: Lista de Usuários (`/usuarios`)**
+- Tabela com colunas: Nome, E-mail, Perfil (role), Data de cadastro
+- Botão "Novo Usuário" (visível apenas para `admin`)
+- Ação por linha: "Editar" — abre formulário de edição (nome e role)
+- Ação por linha: "Desativar / Ativar" — soft delete via campo `ativo: boolean` no documento Firestore (não exclui o registro no Firebase Auth)
+- Usuário logado não pode desativar a si mesmo
+
+**Tela: Formulário de Novo Usuário (`/usuarios/novo`)**
+- Campos: nome (obrigatório), e-mail (obrigatório), senha temporária (obrigatório, mín. 6 caracteres), perfil — admin | secretario | professor (obrigatório)
+- Validação com Zod
+- **Criação sem encerrar sessão do admin:** utilizar uma instância secundária do Firebase App (`initializeApp(config, 'secondary')`) para chamar `createUserWithEmailAndPassword` sem afetar a sessão atual; encerrar a instância secundária após o registro
+- Após criar o usuário no Firebase Auth, criar o documento `users/{uid}` no Firestore com os campos `uid`, `email`, `nome`, `role`, `ativo: true`, `createdAt`, `updatedAt`, `createdBy`
+- Após salvar com sucesso: redirecionar para `/usuarios` e exibir toast de confirmação
+- Feedback visual de sucesso/erro via toast
+
+**Tela: Formulário de Edição de Usuário (`/usuarios/:id/editar`)**
+- Campos editáveis: nome e perfil (role)
+- E-mail **não pode ser alterado** (identificador do Firebase Auth)
+- Ao salvar, atualiza apenas o documento Firestore `users/{uid}` — não altera o Firebase Auth
+- Validação com Zod
+- Feedback visual de sucesso/erro via toast
 
 ### 5.6 Relatórios
 
@@ -340,7 +381,9 @@ service cloud.firestore {
 /relatorios/domingo             → Relatório por domingo
 /relatorios/frequencia          → Registro de frequência trimestral
 
-/usuarios                       → Gerenciar usuários (admin only)
+/usuarios                       → Lista de usuários (admin only)
+/usuarios/novo                  → Formulário de novo usuário (admin only)
+/usuarios/:id/editar            → Editar nome e perfil de usuário (admin only)
 ```
 
 ---
@@ -609,6 +652,7 @@ export const db = getFirestore(app);
 - [ ] Criação automática de registros de frequência
 - [ ] Tela de lista de presença com toggle e sync em tempo real
 - [ ] Edição de aula: rota `/classes/:id/aulas/:aulaId/editar`, botão na FrequenciaPage restrito a admin/secretario, sem recriar registros de frequência
+- [ ] Adicionar aluno retroativo: modal na FrequenciaPage para incluir na lista de presença alunos matriculados após a criação da aula
 
 ### Fase 4 — Relatórios
 - [ ] Relatório por Domingo (tabela + impressão)
@@ -616,6 +660,7 @@ export const db = getFirestore(app);
 - [ ] Dashboard com cards e gráficos
 
 ### Fase 5 — Qualidade e Deploy
+- [ ] Gestão de usuários: lista, cadastro (instância secundária Firebase), edição de nome/role, desativar/ativar (admin only)
 - [ ] Escrever Firestore Security Rules e testar com emulador
 - [ ] Testes unitários dos services e hooks principais
 - [ ] Otimização de performance (memoização, lazy loading de rotas)
